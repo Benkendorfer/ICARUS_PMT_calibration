@@ -327,6 +327,20 @@ void FitChargeDistributions(std::string pmtRow,
 	   <<"\t"<<fit_ideal_3->GetProb()
 	   <<std::endl;
 
+	// print covariance matrices
+  	for(int volt = 0; volt < NVOLT; volt++){
+  		foutFit << std::endl;
+  		foutFit << "Covariance matrix for chID\t" << i << "\tvoltage\t" << voltagestr[volt] << std::endl;
+  		for(int row = 0; row < NPAR_per_voltage; row++){
+  			for(int col = 0; col < NPAR_per_voltage; col++){
+  				foutFit << covariance_matrix[volt]->operator()(row, col);
+  				if(col != NPAR_per_voltage - 1) foutFit << "\t";
+  			}
+  			foutFit << std::endl;
+  		}
+  	}
+  	foutFit << std::endl;
+
     //*************************
     // End fit
     //*************************
@@ -360,7 +374,7 @@ double IdealResponse(double *x,double *par){
   return amplitude * sum;
 }
 
-Double_t truncatedMean(TH1 *hist, int n_iterations, int n_rejection_stddevs = 3){
+Double_t truncatedMean(TH1 *hist, int n_iterations, int n_rejection_stddevs){
   Double_t mean = 0.;
   Double_t stddev = 0.;
 
@@ -393,8 +407,10 @@ void populateCovarianceMatrices(TMatrixDSym *targets[], TMatrixDSym source){
 	// Fill first row/column for all targets
 	for(int i = 0; i < NVOLT; i++){
 		for(int j = 0; j < NPAR_per_voltage; j++){
-			targets[i]->operator()(0, j) = source[0][j];
-			targets[i]->operator()(j, 0) = source[j][0];
+			int source_index = i*3 + j;
+			if(j == 0) source_index = 0;
+			targets[i]->operator()(0, j) = source[0][source_index];
+			targets[i]->operator()(j, 0) = source[source_index][0];
 		}
 	}
 
