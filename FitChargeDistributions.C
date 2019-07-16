@@ -1,7 +1,7 @@
-//*******************************************************************
+//*******************************************************************/
 // Combined fitting code adapted from ROOT tutorials: combinedFit.C
 // Result root files saved as PDF
-//*******************************************************************
+//*******************************************************************/
 
 #include "TH1.h"
 #include "TCanvas.h"
@@ -15,27 +15,31 @@
 #include "HFitInterface.h"
 #include "TCanvas.h"
 #include "TStyle.h"
+#include "TFile.h"
+
+#include "TMatrixDSym.h"
 
 //#include "Fit_Spe.C" // the fit function is defined in this file
 
 // constants
 double PI = TMath::Pi();
+const int NVOLT = 3;
 // define which parameters correspond to which indices
-const int NPAR_i = 4;
-const int NPAR = NPAR_i*3-2;
-int ipar1[NPAR_i] = {  0, // common mu
+const int NPAR_per_voltage = 4;
+const int NPAR = NPAR_per_voltage*3-2;
+int ipar1[NPAR_per_voltage] = {  0, // common mu
                   1, // q for hist 1
                   2, // sigma for hist 1
                   3, // amplitude for hist 1
 };
 
-int ipar2[NPAR_i] = {  0, // common mu
+int ipar2[NPAR_per_voltage] = {  0, // common mu
                   4, // q for hist 2
                   5, // sigma for hist 2
                   6  // amplitude for hist 2
 };
 
-int ipar3[NPAR_i] = {  0,  // common mu
+int ipar3[NPAR_per_voltage] = {  0,  // common mu
                   7, // q for hist 3
                   8, // sigma for hist 3
                   9 // amplitude for hist 3
@@ -44,6 +48,7 @@ int ipar3[NPAR_i] = {  0,  // common mu
 // function declarations
 double IdealResponse(double *x,double *par);
 Double_t truncatedMean(TH1 *hist, int n_iterations, int n_rejection_stddevs = 3);
+void populateCovarianceMatrices(TMatrixDSym *targets[], TMatrixDSym source);
 
 // create combined chi2 structure
 struct GlobalChi2 {
@@ -54,11 +59,11 @@ struct GlobalChi2 {
     fChi2_1(&f1), fChi2_2(&f2), fChi2_3(&f3) {}
 
   double operator() (const double *par) const {
-    double p1[NPAR_i];
-    double p2[NPAR_i];
-    double p3[NPAR_i];
+    double p1[NPAR_per_voltage];
+    double p2[NPAR_per_voltage];
+    double p3[NPAR_per_voltage];
 
-    for (int i = 0; i < NPAR_i; ++i){
+    for (int i = 0; i < NPAR_per_voltage; ++i){
       p1[i] = par[ipar1[i]];
       p2[i] = par[ipar2[i]];
       p3[i] = par[ipar3[i]];
@@ -72,7 +77,7 @@ struct GlobalChi2 {
   const  ROOT::Math::IMultiGenFunction * fChi2_3;
 };
 
-void FitChargeDistributions(string pmtRow,
+void FitChargeDistributions(std::string pmtRow,
 			    char pmt1, char pmt2, char pmt3, char pmt4,
 			    int volt1, int volt2, int volt3, bool led){
 
@@ -84,7 +89,7 @@ void FitChargeDistributions(string pmtRow,
   int rebinfactor[NCH]={rbf_0, rbf_0, rbf_0, rbf_0}; // rebin histograms
   double fitbeginch[NCH]={fbc_0, fbc_0, fbc_0, fbc_0}; // fit start locations
   double fitendch[NCH] = {fec_0, fec_0, fec_0, fec_0}; // fit end locations
-  string initparam[4];
+  std::string initparam[4];
 
   // the function to be used to do fit
   gStyle->SetOptFit(1111);
@@ -93,17 +98,17 @@ void FitChargeDistributions(string pmtRow,
   Fideal->SetParNames("meanNpe","spePeak","speWidth","Amplitude","expAmp","expCoeff");
   Fideal->SetLineColor(2); Fideal->SetLineStyle(1);
   */
-  double par[NPAR_i];
-  double parerr[NPAR_i];
+  double par[NPAR_per_voltage];
+  double parerr[NPAR_per_voltage];
 
   // process 3 files in a batch
-  string rtfilenames[3];
-  string resultnames[4];
+  std::string rtfilenames[3];
+  std::string resultnames[4];
   double channelnames[4] = {0,1,2,3};
-  string strchimney = pmtRow + "_PMT_";
-  string strpmt = to_string(pmt1) + "_" + to_string(pmt2) + "_" + to_string(pmt3) + "_" + to_string(pmt4) + "_";
-  string voltagestr[3] = {to_string(volt1), to_string(volt2), to_string(volt3)};
-  string ledstr;
+  std::string strchimney = pmtRow + "_PMT_";
+  std::string strpmt = std::to_string(pmt1) + "_" + std::to_string(pmt2) + "_" + std::to_string(pmt3) + "_" + std::to_string(pmt4) + "_";
+  std::string voltagestr[3] = {std::to_string(volt1), std::to_string(volt2), std::to_string(volt3)};
+  std::string ledstr;
   if(led)
     ledstr = "On";
   else
@@ -111,16 +116,16 @@ void FitChargeDistributions(string pmtRow,
   
   for(int i=0; i<3; i++){
     rtfilenames[i]  = strchimney + strpmt + voltagestr[i] + "V_Led" + ledstr + "_result.root";
-    cout << rtfilenames[i] << endl;
+    std::cout << rtfilenames[i] << std::endl;
   }
   
   for(int i=0;i<4; i++){
     resultnames[i]  = strchimney + strpmt + "CH" + channelnames[i] + "_" + "Led" + ledstr + ".pdf";
-    cout << resultnames[i] <<endl;
+    std::cout << resultnames[i] <<std::endl;
   }
 
-  string outnameroot = strchimney + strpmt + "gain.root";
-  string outnametxt = strchimney + strpmt + "gain_fit.txt";
+  std::string outnameroot = strchimney + strpmt + "gain.root";
+  std::string outnametxt = strchimney + strpmt + "gain_fit.txt";
   TFile* outROOTfile = new TFile(outnameroot.c_str(),"recreate");  
   fstream foutFit(outnametxt.c_str(),ios::out);
   TH1F* hCharge[3]; // histograms for each canvas
@@ -136,12 +141,12 @@ void FitChargeDistributions(string pmtRow,
   ROOT::Math::MinimizerOptions::SetDefaultMaxFunctionCalls(5000);
 
   // Print header
-  foutFit << "**************************** PARAMETER VALUES ****************************" << endl;
+  foutFit << "**************************** PARAMETER VALUES ****************************" << std::endl;
   
   // Generate 4 canvases and plot the PMT histograms on them
   for(int i = 0; i < 4; i++){
     sprintf(tempname, "c_%d",i);
-    string canvasTitle = strchimney + to_string(i+1);
+    std::string canvasTitle = strchimney + std::to_string(i+1);
     //sprintf(canvasTitle,strchimney + "%d",i); // generate canvas title
     c[i] = new TCanvas(tempname,canvasTitle.c_str(),1400,600); // generate canvas
     c[i]->Divide(3); // divide canvas into 3 pads along the width
@@ -160,15 +165,15 @@ void FitChargeDistributions(string pmtRow,
     }
 
     // generate fit functions
-    TF1* fit_ideal_1 = new TF1("fit_ideal_1",IdealResponse, 0, 500, NPAR_i);
+    TF1* fit_ideal_1 = new TF1("fit_ideal_1",IdealResponse, 0, 500, NPAR_per_voltage);
     fit_ideal_1->SetParNames("meanNpe","spePeak","speWidth","Amplitude");
     fit_ideal_1->SetLineColor(2);
     fit_ideal_1->SetLineStyle(1);
-    TF1* fit_ideal_2 = new TF1("fit_ideal_2",IdealResponse, 0, 500, NPAR_i);
+    TF1* fit_ideal_2 = new TF1("fit_ideal_2",IdealResponse, 0, 500, NPAR_per_voltage);
     fit_ideal_2->SetParNames("meanNpe","spePeak","speWidth","Amplitude");
     fit_ideal_2->SetLineColor(2);
     fit_ideal_2->SetLineStyle(1);
-    TF1* fit_ideal_3 = new TF1("fit_ideal_3",IdealResponse, 0, 500, NPAR_i);
+    TF1* fit_ideal_3 = new TF1("fit_ideal_3",IdealResponse, 0, 500, NPAR_per_voltage);
     fit_ideal_3->SetParNames("meanNpe","spePeak","speWidth","Amplitude");
     fit_ideal_3->SetLineColor(2);
     fit_ideal_3->SetLineStyle(1);
@@ -222,11 +227,11 @@ void FitChargeDistributions(string pmtRow,
 
     for(int j = 0; j < 3; j ++){
       // q
-      fitter.Config().ParSettings(j*(NPAR_i-1)+1).SetLimits(0.01, 10);
+      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+1).SetLimits(0.01, 10);
       // sigma
-      fitter.Config().ParSettings(j*(NPAR_i-1)+2).SetLimits(0.1, 3.1);
+      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+2).SetLimits(0.1, 3.1);
       // amplitude
-      fitter.Config().ParSettings(j*(NPAR_i-1)+3).SetLimits(0.01, 20000);
+      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+3).SetLimits(0.01, 20000);
     }
 
     fitter.Config().MinimizerOptions().SetPrintLevel(0);
@@ -236,11 +241,25 @@ void FitChargeDistributions(string pmtRow,
     // (specify optionally data size and flag to indicate that is a chi2 fit)
     fitter.FitFCN(NPAR,globalChi2,0, chargeData[0].Size() + chargeData[1].Size() + chargeData[2].Size(), true);
     ROOT::Fit::FitResult result;
-    for(int j = 0; j < 3; j++){
+    for(int j = 0; j < NVOLT; j++){
       result = fitter.Result();
       // fitter updates fit parameters after fitting
     }
     result.Print(std::cout);
+
+    // get covariance matrices
+    TMatrixDSym fitCovariance(10);
+    result.GetCovarianceMatrix<TMatrixDSym>(fitCovariance);
+    
+    TMatrixDSym *covariance_matrix[NVOLT];
+    for(int j = 0; j < NVOLT; j++){
+    	covariance_matrix[j] = new TMatrixDSym(NPAR_per_voltage);
+    }
+
+    populateCovarianceMatrices(covariance_matrix, fitCovariance);
+    for(int j = 0; j < NVOLT; j++){
+    	covariance_matrix[j]->Print();
+    }
 
     // display results
     fit_ideal_1->SetFitResult(result,ipar1);
@@ -263,7 +282,7 @@ void FitChargeDistributions(string pmtRow,
     }
 
     // write parameters to output txt file
-    initparam[i]="chID\t"+to_string(i)+"\t"       //channel id
+    initparam[i]="chID\t"+std::to_string(i)+"\t"       //channel id
       +fitbeginch[i]+"\t"         //start fit
       +fitendch[i]+"\t"           //end fit
       +rebinfactor[i]+"\t"        //rebin factor
@@ -282,7 +301,7 @@ void FitChargeDistributions(string pmtRow,
 	   <<"\t"<<fit_ideal_1->GetChisquare()
 	   <<"\t"<<fit_ideal_1->GetNDF()
 	   <<"\t"<<fit_ideal_1->GetProb()
-	   <<endl;
+	   <<std::endl;
     
     // Voltage 2
     fit_ideal_2->GetParameters(par);
@@ -294,7 +313,7 @@ void FitChargeDistributions(string pmtRow,
 	   <<"\t"<<fit_ideal_2->GetChisquare()
 	   <<"\t"<<fit_ideal_2->GetNDF()
 	   <<"\t"<<fit_ideal_2->GetProb()
-	   <<endl;
+	   <<std::endl;
 
     // Voltage 3
     fit_ideal_3->GetParameters(par);
@@ -306,7 +325,7 @@ void FitChargeDistributions(string pmtRow,
 	   <<"\t"<<fit_ideal_3->GetChisquare()
 	   <<"\t"<<fit_ideal_3->GetNDF()
 	   <<"\t"<<fit_ideal_3->GetProb()
-	   <<endl;
+	   <<std::endl;
 
     //*************************
     // End fit
@@ -319,9 +338,9 @@ void FitChargeDistributions(string pmtRow,
   }
 
   // print initial parameters at end of root file
-  foutFit << "**************************** INITIAL PARAMETERS ****************************" << endl;
+  foutFit << "**************************** INITIAL PARAMETERS ****************************" << std::endl;
   for(int i = 0; i < 4; i++){
-    foutFit << initparam[i] << endl;
+    foutFit << initparam[i] << std::endl;
   }
   
   // close output ROOT file
@@ -353,7 +372,7 @@ Double_t truncatedMean(TH1 *hist, int n_iterations, int n_rejection_stddevs = 3)
     mean = hist->GetMean(1);
     stddev = hist->GetStdDev(1);
 
-    //cout << mean << endl;
+    //std::cout << mean << std::endl;
 
     // Truncate
     Double_t new_start = mean - n_rejection_stddevs * stddev;
@@ -366,4 +385,27 @@ Double_t truncatedMean(TH1 *hist, int n_iterations, int n_rejection_stddevs = 3)
   hist->GetXaxis()->UnZoom();
 
   return mean;
+}
+
+void populateCovarianceMatrices(TMatrixDSym *targets[], TMatrixDSym source){
+	// ASSUMES only par_0 is held across all voltages
+
+	// Fill first row/column for all targets
+	for(int i = 0; i < NVOLT; i++){
+		for(int j = 0; j < NPAR_per_voltage; j++){
+			targets[i]->operator()(0, j) = source[0][j];
+			targets[i]->operator()(j, 0) = source[j][0];
+		}
+	}
+
+	// Fill remaining rows/columns for all targets
+	for(int volt = 0; volt < NVOLT; volt++){
+		for(int i = 1; i < NPAR_per_voltage; i++){
+			for(int j = 1; j < NPAR_per_voltage; j++){
+				int source_row = volt*3 + i;
+				int source_column = volt*3 + j;
+				targets[volt]->operator()(i, j) = source[source_row][source_column];
+			}
+		}
+	}
 }
