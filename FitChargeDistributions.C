@@ -25,6 +25,7 @@
 double PI = TMath::Pi();
 const int NVOLT = 3;
 const bool USE_LIMITS = false;
+const std::string SEP = ",";
 // define which parameters correspond to which indices
 const int NPAR_per_voltage = 4;
 const int NPAR = NPAR_per_voltage*3-2;
@@ -297,37 +298,37 @@ void FitChargeDistributions(std::string pmtRow,
     // Voltage 1
     fit_ideal_1->GetParameters(par);
     foutFit<<"voltage\t"<<voltagestr[0]<<"\tchID\t"<<i
-	   <<"\t"<<par[0]<<"\t"<<fit_ideal_1->GetParError(0)
-	   <<"\t"<<par[1]<<"\t"<<fit_ideal_1->GetParError(1)
-	   <<"\t"<<par[2]<<"\t"<<fit_ideal_1->GetParError(2)
-	   <<"\t"<<par[3]<<"\t"<<fit_ideal_1->GetParError(3)
-	   <<"\t"<<fit_ideal_1->GetChisquare()
-	   <<"\t"<<fit_ideal_1->GetNDF()
-	   <<"\t"<<fit_ideal_1->GetProb()
+	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
+	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
+	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
+	   <<SEP<<par[3]<<SEP<<fit_ideal_1->GetParError(3)
+	   <<SEP<<fit_ideal_1->GetChisquare()
+	   <<SEP<<fit_ideal_1->GetNDF()
+	   <<SEP<<fit_ideal_1->GetProb()
 	   <<std::endl;
     
     // Voltage 2
     fit_ideal_2->GetParameters(par);
     foutFit<<"voltage\t"<<voltagestr[1]<<"\tchID\t"<<i
-	   <<"\t"<<par[0]<<"\t"<<fit_ideal_2->GetParError(0)
-	   <<"\t"<<par[1]<<"\t"<<fit_ideal_2->GetParError(1)
-	   <<"\t"<<par[2]<<"\t"<<fit_ideal_2->GetParError(2)
-	   <<"\t"<<par[3]<<"\t"<<fit_ideal_2->GetParError(3) 
-	   <<"\t"<<fit_ideal_2->GetChisquare()
-	   <<"\t"<<fit_ideal_2->GetNDF()
-	   <<"\t"<<fit_ideal_2->GetProb()
+	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
+	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
+	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
+	   <<SEP<<par[3]<<SEP<<fit_ideal_1->GetParError(3)
+	   <<SEP<<fit_ideal_1->GetChisquare()
+	   <<SEP<<fit_ideal_1->GetNDF()
+	   <<SEP<<fit_ideal_1->GetProb()
 	   <<std::endl;
 
     // Voltage 3
     fit_ideal_3->GetParameters(par);
     foutFit<<"voltage\t"<<voltagestr[2]<<"\tchID\t"<<i
-	   <<"\t"<<par[0]<<"\t"<<fit_ideal_3->GetParError(0)
-	   <<"\t"<<par[1]<<"\t"<<fit_ideal_3->GetParError(1)
-	   <<"\t"<<par[2]<<"\t"<<fit_ideal_3->GetParError(2)
-	   <<"\t"<<par[3]<<"\t"<<fit_ideal_3->GetParError(3)
-	   <<"\t"<<fit_ideal_3->GetChisquare()
-	   <<"\t"<<fit_ideal_3->GetNDF()
-	   <<"\t"<<fit_ideal_3->GetProb()
+	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
+	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
+	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
+	   <<SEP<<par[3]<<SEP<<fit_ideal_1->GetParError(3)
+	   <<SEP<<fit_ideal_1->GetChisquare()
+	   <<SEP<<fit_ideal_1->GetNDF()
+	   <<SEP<<fit_ideal_1->GetProb()
 	   <<std::endl;
 
 	// print covariance matrices
