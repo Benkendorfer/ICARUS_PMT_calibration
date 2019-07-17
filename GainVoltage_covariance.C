@@ -95,8 +95,8 @@ void GainVoltage_covariance(std::string chimney){
 
     // Define power law fit function
 
-    // Perform power law fit
-    TF1 *fit = new TF1("fit", power, fbegin, fend);
+    // Perform linear fit to log-log
+    TF1 *fit = new TF1("fit", "pol1", fbegin, fend);
     double par[NPAR];
     double parerr[NPAR];
     fit->SetParNames("Constant", "Exponent");
@@ -116,8 +116,8 @@ void GainVoltage_covariance(std::string chimney){
     c[pmt_num]->GetFrame()->SetBorderSize(12);
 
     // Create graph of data
-    TGraph* data = new TGraphErrors(num_data_points, voltage_nolog, gain_nolog, voltage_error_nolog, gain_error_nolog);
-    std::string title =  "PMT " + chimney + "_" + std::to_string(pmt_num + 1) + " gain vs voltage (fitted);"
+    TGraph* data = new TGraphErrors(num_data_points, voltage, gain, voltage_error, gain_error);
+    std::string title =  "PMT " + chimney + "_" + std::to_string(pmt_num + 1) + " gain vs voltage (log);"
                     + "log(voltage [V]);"
                     + "log(gain)";
     data->SetTitle(title.c_str());
@@ -162,6 +162,13 @@ void GainVoltage_covariance(std::string chimney){
     c[pmt_num]->SetGrid();
     c[pmt_num]->GetFrame()->SetBorderSize(12);
 
+    TF1 *fit_nolog = new TF1("fit_power", power, fbegin, fend, NPAR);
+    double par_nolog[NPAR];
+    double parerr_nolog[NPAR];
+    fit->SetParNames("Constant", "Exponent");
+    fit->SetLineColor(2);
+    fit->SetLineStyle(1);
+
     // Plot points
     TGraph *dataLinear = new TGraphErrors(  num_data_points, voltage_nolog, 
                                         gain_nolog, voltage_error_nolog, 
@@ -174,10 +181,14 @@ void GainVoltage_covariance(std::string chimney){
     dataLinear->Draw("ap");
 
     // Draw fit result
-    TF1 *gainFunc = new TF1("gainfunc",power,1000,2000,2);
-    gainFunc->SetParameter(0,amplitude);
-    gainFunc->SetParameter(1,exponent);
-    gainFunc->Draw("SAME");
+    //TF1 *gainFunc = new TF1("gainfunc",power,1000,2000,2);
+    //gainFunc->SetParameter(0,amplitude);
+    //gainFunc->SetParameter(1,exponent);
+    //gainFunc->Draw("SAME");
+
+    fit_nolog->SetParameters(amplitude,exponent);
+    std::cout << "Fitting " << pmt_num + 1 << std::endl;
+    data->Fit("fit_power","");
 
     // Write output files
     outROOTfile->cd();
