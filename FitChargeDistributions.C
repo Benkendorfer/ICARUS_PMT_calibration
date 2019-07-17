@@ -220,10 +220,10 @@ void FitChargeDistributions(std::string pmtRow,
                             sigma_0,
                             hCharge[2]->Integral()/2}; // starting values
    
+	fitter.Config().SetParamsSettings(NPAR, par0);
+
     // set ranges on fit parameters if desired
   	if(USE_LIMITS){
-    	fitter.Config().SetParamsSettings(NPAR, par0);
-
     	// mu
     	fitter.Config().ParSettings(0).SetLimits(5, 30);
 
