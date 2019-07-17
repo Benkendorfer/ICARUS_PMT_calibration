@@ -261,9 +261,9 @@ void FitChargeDistributions(std::string pmtRow,
     }
 
     populateCovarianceMatrices(covariance_matrix, fitCovariance);
-    for(int j = 0; j < NVOLT; j++){
-    	covariance_matrix[j]->Print();
-    }
+    // for(int j = 0; j < NVOLT; j++){
+    // 	covariance_matrix[j]->Print();
+    // }
 
     // display results
     fit_ideal_1->SetFitResult(result,ipar1);
@@ -297,7 +297,7 @@ void FitChargeDistributions(std::string pmtRow,
     
     // Voltage 1
     fit_ideal_1->GetParameters(par);
-    foutFit<<"voltage\t"<<voltagestr[0]<<"\tchID\t"<<i
+    foutFit<<"voltage\t"<<voltagestr[0]<<"\tchID\t"<<i<<"\t"
 	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
 	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
 	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
@@ -309,7 +309,7 @@ void FitChargeDistributions(std::string pmtRow,
     
     // Voltage 2
     fit_ideal_2->GetParameters(par);
-    foutFit<<"voltage\t"<<voltagestr[1]<<"\tchID\t"<<i
+    foutFit<<"voltage\t"<<voltagestr[1]<<"\tchID\t"<<i<<"\t"
 	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
 	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
 	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
@@ -321,7 +321,7 @@ void FitChargeDistributions(std::string pmtRow,
 
     // Voltage 3
     fit_ideal_3->GetParameters(par);
-    foutFit<<"voltage\t"<<voltagestr[2]<<"\tchID\t"<<i
+    foutFit<<"voltage\t"<<voltagestr[2]<<"\tchID\t"<<i<<"\t"
 	   <<SEP<<par[0]<<SEP<<fit_ideal_1->GetParError(0)
 	   <<SEP<<par[1]<<SEP<<fit_ideal_1->GetParError(1)
 	   <<SEP<<par[2]<<SEP<<fit_ideal_1->GetParError(2)
@@ -338,7 +338,7 @@ void FitChargeDistributions(std::string pmtRow,
   		for(int row = 0; row < NPAR_per_voltage; row++){
   			for(int col = 0; col < NPAR_per_voltage; col++){
   				foutFit << covariance_matrix[volt]->operator()(row, col);
-  				if(col != NPAR_per_voltage - 1) foutFit << "\t";
+  				if(col != NPAR_per_voltage - 1) foutFit << SEP;
   			}
   			foutFit << std::endl;
   		}
