@@ -24,6 +24,7 @@
 // constants
 double PI = TMath::Pi();
 const int NVOLT = 3;
+const bool USE_LIMITS = false;
 // define which parameters correspond to which indices
 const int NPAR_per_voltage = 4;
 const int NPAR = NPAR_per_voltage*3-2;
@@ -219,20 +220,22 @@ void FitChargeDistributions(std::string pmtRow,
                             sigma_0,
                             hCharge[2]->Integral()/2}; // starting values
    
-    // set ranges on fit parameters
-    fitter.Config().SetParamsSettings(NPAR, par0);
+    // set ranges on fit parameters if desired
+  	if(USE_LIMITS){
+    	fitter.Config().SetParamsSettings(NPAR, par0);
 
-    // mu
-    fitter.Config().ParSettings(0).SetLimits(5, 30);
+    	// mu
+    	fitter.Config().ParSettings(0).SetLimits(5, 30);
 
-    for(int j = 0; j < 3; j ++){
-      // q
-      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+1).SetLimits(0.01, 10);
-      // sigma
-      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+2).SetLimits(0.1, 3.1);
-      // amplitude
-      fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+3).SetLimits(0.01, 20000);
-    }
+    	for(int j = 0; j < 3; j ++){
+	      	// q
+	      	fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+1).SetLimits(0.01, 10);
+	      	// sigma
+	      	fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+2).SetLimits(0.1, 3.1);
+	      	// amplitude
+	      	fitter.Config().ParSettings(j*(NPAR_per_voltage-1)+3).SetLimits(0.01, 20000);
+    	}
+	}
 
     fitter.Config().MinimizerOptions().SetPrintLevel(0);
     fitter.Config().SetMinimizer("Minuit2","Migrad");
